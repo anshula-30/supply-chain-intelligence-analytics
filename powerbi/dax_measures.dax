@@ -1,0 +1,300 @@
+// ============================================================================
+// SUPPLY CHAIN INTELLIGENCE & OPERATIONS ANALYTICS PLATFORM
+// Complete DAX Measures Library
+// ============================================================================
+// Instructions for Power BI:
+// 1. In Power BI Desktop, create a dedicated measures table called '_Measures'
+//    via Home -> Enter Data -> Name table '_Measures' -> Load.
+// 2. Add each of these measures into the '_Measures' table.
+// ============================================================================
+
+
+// ============================================================================
+// SECTION 1: CORE VOLUME & FINANCIAL MEASURES
+// ============================================================================
+
+Total Orders = 
+COUNTROWS('fact_supply_chain_orders')
+
+Total Units Sold = 
+SUM('fact_supply_chain_orders'[units_sold])
+
+Total Revenue = 
+SUM('fact_supply_chain_orders'[total_revenue])
+
+Total COGS = 
+SUM('fact_supply_chain_orders'[total_cogs])
+
+Gross Profit = 
+[Total Revenue] - [Total COGS]
+
+Gross Margin % = 
+DIVIDE([Gross Profit], [Total Revenue], 0)
+
+Total Logistics Cost = 
+SUM('fact_supply_chain_orders'[logistics_cost])
+
+Net Operating Profit = 
+[Gross Profit] - [Total Logistics Cost]
+
+Net Margin % = 
+DIVIDE([Net Operating Profit], [Total Revenue], 0)
+
+Logistics Cost per Order = 
+DIVIDE([Total Logistics Cost], [Total Orders], 0)
+
+Logistics Cost per Unit = 
+DIVIDE([Total Logistics Cost], [Total Units Sold], 0)
+
+Freight to Revenue % = 
+DIVIDE([Total Logistics Cost], [Total Revenue], 0)
+
+Freight to Gross Profit % = 
+DIVIDE([Total Logistics Cost], [Gross Profit], 0)
+
+
+// ============================================================================
+// SECTION 2: SERVICE LEVEL, LEAD TIME & DELIVERY SLA MEASURES
+// ============================================================================
+
+Average Shipping Lead Time = 
+AVERAGE('fact_supply_chain_orders'[shipping_time_days])
+
+On-Time Orders = 
+CALCULATE(
+    COUNTROWS('fact_supply_chain_orders'),
+    'fact_supply_chain_orders'[is_on_time] = 1
+)
+
+On-Time Delivery Rate % = 
+DIVIDE([On-Time Orders], [Total Orders], 0)
+
+Delayed Orders = 
+CALCULATE(
+    COUNTROWS('fact_supply_chain_orders'),
+    'fact_supply_chain_orders'[is_on_time] = 0
+)
+
+Delay Rate % = 
+DIVIDE([Delayed Orders], [Total Orders], 0)
+
+Average Delay Days (All Orders) = 
+AVERAGE('fact_supply_chain_orders'[delivery_delay_days])
+
+Average Delay Days (Delayed Orders Only) = 
+CALCULATE(
+    AVERAGE('fact_supply_chain_orders'[delivery_delay_days]),
+    'fact_supply_chain_orders'[delivery_delay_days] > 0
+)
+
+Severe Delay Orders (>= 8 Days) = 
+CALCULATE(
+    COUNTROWS('fact_supply_chain_orders'),
+    'fact_supply_chain_orders'[shipping_time_days] >= 8
+)
+
+Severe Delay Rate % = 
+DIVIDE([Severe Delay Orders (>= 8 Days)], [Total Orders], 0)
+
+
+// ============================================================================
+// SECTION 3: INVENTORY HEALTH & ORDER FULFILLMENT MEASURES
+// ============================================================================
+
+Fully Fulfilled Orders = 
+CALCULATE(
+    COUNTROWS('fact_supply_chain_orders'),
+    'fact_supply_chain_orders'[fulfillment_status] = "Fulfilled"
+)
+
+Fulfillment Rate % = 
+DIVIDE([Fully Fulfilled Orders], [Total Orders], 0)
+
+Stockout Incidents = 
+CALCULATE(
+    COUNTROWS('fact_supply_chain_orders'),
+    'fact_supply_chain_orders'[stockout_flag] = 1
+)
+
+Stockout Rate % = 
+DIVIDE([Stockout Incidents], [Total Orders], 0)
+
+Understock Warning Orders = 
+CALCULATE(
+    COUNTROWS('fact_supply_chain_orders'),
+    'fact_supply_chain_orders'[understock_flag] = 1
+)
+
+Understock Rate % = 
+DIVIDE([Understock Warning Orders], [Total Orders], 0)
+
+Total Fulfillment Deficit Units = 
+SUM('fact_supply_chain_orders'[fulfillment_deficit_units])
+
+Deficit Orders Count = 
+CALCULATE(
+    COUNTROWS('fact_supply_chain_orders'),
+    'fact_supply_chain_orders'[fulfillment_deficit_units] > 0
+)
+
+Deficit Order Rate % = 
+DIVIDE([Deficit Orders Count], [Total Orders], 0)
+
+Inventory Availability % = 
+1 - [Deficit Order Rate %]
+
+Average On-Hand Stock = 
+AVERAGE('fact_supply_chain_orders'[stock_quantity])
+
+Average Reorder Level = 
+AVERAGE('fact_supply_chain_orders'[reorder_level])
+
+Inventory Turnover Proxy = 
+DIVIDE([Total Units Sold], [Average On-Hand Stock], 0)
+
+Zero Demand Orders = 
+CALCULATE(
+    COUNTROWS('fact_supply_chain_orders'),
+    'fact_supply_chain_orders'[units_sold] = 0
+)
+
+Cancellation or Zero Demand Rate % = 
+DIVIDE([Zero Demand Orders], [Total Orders], 0)
+
+
+// ============================================================================
+// SECTION 4: SUPPLIER RELIABILITY & VENDOR RANKINGS
+// ============================================================================
+
+Supplier Reliability Index = 
+([On-Time Delivery Rate %] * 0.5) + ([Fulfillment Rate %] * 0.5)
+
+Supplier Rank by Revenue = 
+RANKX(
+    ALLSELECTED('dim_suppliers'[supplier_name]),
+    [Total Revenue],
+    ,
+    DESC,
+    Dense
+)
+
+Supplier Rank by Reliability = 
+RANKX(
+    ALLSELECTED('dim_suppliers'[supplier_name]),
+    [Supplier Reliability Index],
+    ,
+    DESC,
+    Dense
+)
+
+Product Rank by Sales Volume = 
+RANKX(
+    ALLSELECTED('dim_products'[product_name]),
+    [Total Units Sold],
+    ,
+    DESC,
+    Dense
+)
+
+
+// ============================================================================
+// SECTION 5: TIME INTELLIGENCE & TEMPORAL COMPARISONS
+// ============================================================================
+
+Revenue Previous Month = 
+CALCULATE(
+    [Total Revenue],
+    PREVIOUSMONTH('dim_date'[date_key])
+)
+
+Revenue MoM Growth % = 
+DIVIDE(
+    [Total Revenue] - [Revenue Previous Month],
+    [Revenue Previous Month],
+    0
+)
+
+Orders Previous Month = 
+CALCULATE(
+    [Total Orders],
+    PREVIOUSMONTH('dim_date'[date_key])
+)
+
+Orders MoM Growth % = 
+DIVIDE(
+    [Total Orders] - [Orders Previous Month],
+    [Orders Previous Month],
+    0
+)
+
+Revenue Same Period Last Year = 
+CALCULATE(
+    [Total Revenue],
+    SAMEPERIODLASTYEAR('dim_date'[date_key])
+)
+
+Revenue YoY Growth % = 
+DIVIDE(
+    [Total Revenue] - [Revenue Same Period Last Year],
+    [Revenue Same Period Last Year],
+    0
+)
+
+Rolling 30-Day Orders = 
+CALCULATE(
+    [Total Orders],
+    DATESINPERIOD(
+        'dim_date'[date_key],
+        MAX('dim_date'[date_key]),
+        -30,
+        DAY
+    )
+)
+
+Rolling 30-Day Revenue = 
+CALCULATE(
+    [Total Revenue],
+    DATESINPERIOD(
+        'dim_date'[date_key],
+        MAX('dim_date'[date_key]),
+        -30,
+        DAY
+    )
+)
+
+
+// ============================================================================
+// SECTION 6: DYNAMIC OPERATIONAL RISK & CONDITIONAL FORMATTING
+// ============================================================================
+
+Supplier Risk Category = 
+SWITCH(
+    TRUE(),
+    [Supplier Reliability Index] < 0.598, "High Risk (Action Required)",
+    [Supplier Reliability Index] < 0.603, "Medium Risk (Monitor)",
+    "Low Risk (Preferred Partner)"
+)
+
+Delivery Risk KPI Color = 
+SWITCH(
+    TRUE(),
+    [On-Time Delivery Rate %] < 0.495, "#D9534F", // Red (Underperforming SLA)
+    [On-Time Delivery Rate %] < 0.505, "#F0AD4E", // Amber (Near Benchmark)
+    "#5CB85C"                                    // Green (Good)
+)
+
+Inventory Risk KPI Color = 
+SWITCH(
+    TRUE(),
+    [Understock Rate %] > 0.205 || [Stockout Rate %] > 0.003, "#D9534F", // Red
+    [Understock Rate %] > 0.190, "#F0AD4E",                              // Amber
+    "#5CB85C"                                                            // Green
+)
+
+Fulfillment KPI Color = 
+SWITCH(
+    TRUE(),
+    [Fulfillment Rate %] < 0.70, "#D9534F", // Red
+    [Fulfillment Rate %] < 0.72, "#F0AD4E", // Amber
+    "#5CB85C"                               // Green
+)

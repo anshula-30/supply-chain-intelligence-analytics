@@ -1,0 +1,6 @@
+warehouse_id,warehouse_name,city,state,region,storage_capacity_sqft
+WH-BLR,Bangalore Logistics Hub,Bangalore,Karnataka,South,50000
+WH-MAA,Chennai Port Logistics Hub,Chennai,Tamil Nadu,South,45000
+WH-DEL,Delhi NCR Regional Hub,Delhi NCR,Delhi NCR,North,60000
+WH-HYD,Hyderabad Cargo Logistics Hub,Hyderabad,Telangana,South,48000
+WH-BOM,Mumbai Central Logistics Hub,Mumbai,Maharashtra,West,55000

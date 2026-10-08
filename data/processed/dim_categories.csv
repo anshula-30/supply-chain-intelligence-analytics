@@ -1,0 +1,5 @@
+category_id,category_name,target_margin_pct
+CAT-ELEC,Electronics,20.0
+CAT-FASH,Fashion,20.0
+CAT-APPL,Home Appliances,20.0
+CAT-SPRT,Sports,20.0

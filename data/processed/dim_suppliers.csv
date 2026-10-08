@@ -1,0 +1,6 @@
+supplier_id,supplier_name,contact_email,lead_time_sla_days,supplier_tier
+SUP-A,Supplier A,procurement@suppliera.com,5,Tier-1
+SUP-B,Supplier B,procurement@supplierb.com,5,Tier-1
+SUP-C,Supplier C,procurement@supplierc.com,5,Tier-1
+SUP-D,Supplier D,procurement@supplierd.com,5,Tier-2
+SUP-E,Supplier E,procurement@suppliere.com,5,Tier-2

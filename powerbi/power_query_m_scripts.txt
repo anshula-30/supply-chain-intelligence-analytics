@@ -1,0 +1,149 @@
+// ============================================================================
+// SUPPLY CHAIN INTELLIGENCE & OPERATIONS ANALYTICS PLATFORM
+// Power Query (M) ETL Scripts for Power BI Desktop
+// ============================================================================
+// INSTRUCTIONS:
+// 1. Open Power BI Desktop -> Transform Data (Power Query Editor).
+// 2. Click 'New Source' -> 'Blank Query'.
+// 3. Open 'Advanced Editor' and paste the respective M query code.
+// 4. Update the 'DataFolderPath' parameter to your local data folder if different:
+//    e.g., "c:/Users/ANSHULA/OneDrive/Documentos/3Skill Data Analytics/data/processed/"
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// PARAMETER: DataFolderPath
+// ----------------------------------------------------------------------------
+// Create as New Parameter in Power Query:
+"c:/Users/ANSHULA/OneDrive/Documentos/3Skill Data Analytics/data/processed/" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+
+
+// ----------------------------------------------------------------------------
+// TABLE 1: dim_suppliers
+// ----------------------------------------------------------------------------
+let
+    Source = Csv.Document(File.Contents("c:/Users/ANSHULA/OneDrive/Documentos/3Skill Data Analytics/data/processed/dim_suppliers.csv"),[Delimiter=",", Columns=5, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+        {"supplier_id", type text},
+        {"supplier_name", type text},
+        {"contact_email", type text},
+        {"lead_time_sla_days", Int64.Type},
+        {"supplier_tier", type text}
+    })
+in
+    #"Changed Type"
+
+
+// ----------------------------------------------------------------------------
+// TABLE 2: dim_warehouses
+// ----------------------------------------------------------------------------
+let
+    Source = Csv.Document(File.Contents("c:/Users/ANSHULA/OneDrive/Documentos/3Skill Data Analytics/data/processed/dim_warehouses.csv"),[Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+        {"warehouse_id", type text},
+        {"warehouse_name", type text},
+        {"city", type text},
+        {"state", type text},
+        {"region", type text},
+        {"storage_capacity_sqft", Int64.Type}
+    })
+in
+    #"Changed Type"
+
+
+// ----------------------------------------------------------------------------
+// TABLE 3: dim_categories
+// ----------------------------------------------------------------------------
+let
+    Source = Csv.Document(File.Contents("c:/Users/ANSHULA/OneDrive/Documentos/3Skill Data Analytics/data/processed/dim_categories.csv"),[Delimiter=",", Columns=3, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+        {"category_id", type text},
+        {"category_name", type text},
+        {"target_margin_pct", type number}
+    })
+in
+    #"Changed Type"
+
+
+// ----------------------------------------------------------------------------
+// TABLE 4: dim_products
+// ----------------------------------------------------------------------------
+let
+    Source = Csv.Document(File.Contents("c:/Users/ANSHULA/OneDrive/Documentos/3Skill Data Analytics/data/processed/dim_products.csv"),[Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+        {"product_id", type text},
+        {"sku_code", type text},
+        {"product_name", type text},
+        {"category_id", type text},
+        {"category_name", type text},
+        {"standard_reorder_level", Int64.Type}
+    })
+in
+    #"Changed Type"
+
+
+// ----------------------------------------------------------------------------
+// TABLE 5: dim_date
+// ----------------------------------------------------------------------------
+let
+    Source = Csv.Document(File.Contents("c:/Users/ANSHULA/OneDrive/Documentos/3Skill Data Analytics/data/processed/dim_date.csv"),[Delimiter=",", Columns=12, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+        {"date_key", type date},
+        {"full_date", type date},
+        {"year", Int64.Type},
+        {"quarter", type text},
+        {"year_quarter", type text},
+        {"month", Int64.Type},
+        {"month_name", type text},
+        {"year_month", type text},
+        {"day_of_month", Int64.Type},
+        {"day_of_week", Int64.Type},
+        {"day_name", type text},
+        {"is_weekend", Int64.Type}
+    })
+in
+    #"Changed Type"
+
+
+// ----------------------------------------------------------------------------
+// TABLE 6: fact_supply_chain_orders
+// ----------------------------------------------------------------------------
+let
+    Source = Csv.Document(File.Contents("c:/Users/ANSHULA/OneDrive/Documentos/3Skill Data Analytics/data/processed/fact_supply_chain_orders.csv"),[Delimiter=",", Columns=28, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+        {"order_id", type text},
+        {"raw_record_id", type text},
+        {"order_date", type date},
+        {"delivery_date", type date},
+        {"product_id", type text},
+        {"supplier_id", type text},
+        {"warehouse_id", type text},
+        {"units_sold", Int64.Type},
+        {"unit_purchase_cost", type number},
+        {"unit_selling_price", type number},
+        {"stock_quantity", Int64.Type},
+        {"reorder_level", Int64.Type},
+        {"shipping_time_days", Int64.Type},
+        {"target_lead_time_days", Int64.Type},
+        {"delivery_delay_days", Int64.Type},
+        {"is_on_time", Int64.Type},
+        {"fulfillment_status", type text},
+        {"stockout_flag", Int64.Type},
+        {"understock_flag", Int64.Type},
+        {"fulfillment_deficit_units", Int64.Type},
+        {"total_revenue", type number},
+        {"total_cogs", type number},
+        {"gross_profit", type number},
+        {"gross_margin_pct", type number},
+        {"logistics_cost", type number},
+        {"net_profit", type number},
+        {"inventory_risk_category", type text},
+        {"delivery_risk_category", type text}
+    })
+in
+    #"Changed Type"
